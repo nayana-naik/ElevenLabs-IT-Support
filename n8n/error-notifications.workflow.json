@@ -1,0 +1,61 @@
+{
+  "name": "IT Support - Error Notifications",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9e827a7b-dd68-483e-81d1-3816ad3e455f",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [-400, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const execution = $json.execution || {};\nconst workflow = $json.workflow || {};\nconst error = execution.error || {};\n\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    workflow: workflow.name || \"unknown\",\n    node: execution.lastNodeExecuted || null,\n    error: error.message || \"no error message\",\n    execution_url: execution.url || null\n  }\n}];"
+      },
+      "id": "78e98eeb-d8fd-4108-bc4f-783e06c5af69",
+      "name": "Code - Format Error Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://REPLACE_WITH_YOUR_WEBHOOK_OR_ENDPOINT_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "43529659-5a38-49c3-87bb-dea2f00ef3cb",
+      "name": "HTTP Request - Send Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "content": "## Setup needed here\n1. Pick any endpoint that can receive a POST with a JSON body - a webhook.site URL (for quick testing), a Slack/Discord incoming webhook, or your own server.\n2. Import + Activate this workflow.\n3. Open \"HTTP Request - Send Error\" and replace the placeholder URL with that endpoint.\n4. Go to each of your other workflows (it-support-tools, post-call-review) -> ⋮ menu -> Settings -> Error Workflow -> select \"IT Support - Error Notifications\".\n5. Now a failed tool call or review generation POSTs {timestamp, workflow, node, error, execution_url} to that URL instead of failing silently.",
+        "height": 260,
+        "width": 340
+      },
+      "id": "12f3272e-97cc-4bf1-b2cf-b3598cb8eaed",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-400, -300]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [[{ "node": "Code - Format Error Record", "type": "main", "index": 0 }]]
+    },
+    "Code - Format Error Record": {
+      "main": [[{ "node": "HTTP Request - Send Error", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": { "instanceId": "error-notifications-workflow" }
+}

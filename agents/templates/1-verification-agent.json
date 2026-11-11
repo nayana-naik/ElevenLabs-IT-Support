@@ -1,0 +1,53 @@
+{
+  "_setup_notes": "Create LAST - needs the other 3 agents' IDs for its transfer rules. Replace {{VERIFY_EMPLOYEE_TOOL_ID}}, {{AGENT_2_BILLING_ID}}, {{AGENT_3_TECH_SUPPORT_ID}}, {{AGENT_4_ESCALATION_ID}}. No 'workflow' key on purpose.",
+  "name": "Verification-Agent",
+  "conversation_config": {
+    "agent": {
+      "first_message": "Thanks for calling Acme Corp IT Support. Can I get your employee ID or work email to pull up your account?",
+      "language": "en",
+      "prompt": {
+        "prompt": "You are the IT Support intake agent for Acme Corp. Your only jobs: (1) greet the caller, (2) verify their identity using the verify_employee tool with the employee ID or work email they give you, (3) ask what kind of issue they're having, (4) transfer them to the right specialist. BILLING issues (software license costs, subscription renewals, billing-system access) go to the Billing specialist. TECHNICAL issues (password resets, VPN, hardware, software installs, login/MFA problems) go to the Tech Support specialist. If verify_employee returns verified:false after one retry, apologize and transfer to Escalation so a human can verify them. Keep responses short and natural, like a real phone call. Never invent employee data.",
+        "llm": "gemini-3.1-flash-lite",
+        "temperature": 0.4,
+        "tool_ids": ["{{VERIFY_EMPLOYEE_TOOL_ID}}"],
+        "built_in_tools": {
+          "transfer_to_agent": {
+            "type": "system",
+            "name": "transfer_to_agent",
+            "description": "Transfer the caller to the right specialist agent based on their request.",
+            "params": {
+              "system_tool_type": "transfer_to_agent",
+              "transfers": [
+                {
+                  "agent_id": "{{AGENT_2_BILLING_ID}}",
+                  "condition": "Issue is billing / licensing / subscription / billing-access related",
+                  "delay_ms": 0,
+                  "transfer_message": null,
+                  "enable_transferred_agent_first_message": true
+                },
+                {
+                  "agent_id": "{{AGENT_3_TECH_SUPPORT_ID}}",
+                  "condition": "Issue is a technical / hardware / software / login problem",
+                  "delay_ms": 0,
+                  "transfer_message": null,
+                  "enable_transferred_agent_first_message": true
+                },
+                {
+                  "agent_id": "{{AGENT_4_ESCALATION_ID}}",
+                  "condition": "Caller cannot be verified after one retry, or explicitly asks for a human",
+                  "delay_ms": 0,
+                  "transfer_message": null,
+                  "enable_transferred_agent_first_message": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "tts": {
+      "model_id": "eleven_turbo_v2",
+      "voice_id": "21m00Tcm4TlvDq8ikWAM"
+    }
+  }
+}

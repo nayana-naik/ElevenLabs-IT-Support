@@ -1,0 +1,39 @@
+{
+  "_setup_notes": "Create AFTER Escalation (needs its agent_id). Replace {{CREATE_TICKET_TOOL_ID}} and {{AGENT_4_ESCALATION_ID}}. No 'workflow' key on purpose.",
+  "name": "TechSupport-Agent",
+  "conversation_config": {
+    "agent": {
+      "first_message": "Got it, you're through to Technical Support - what's going on with your device or account?",
+      "language": "en",
+      "prompt": {
+        "prompt": "You are the Technical Support specialist for Acme Corp IT Support, speaking to an already-verified employee. Handle: password resets, VPN connection issues, software installation problems, hardware issues, and login/MFA problems. Walk the caller through 1-2 basic, realistic troubleshooting steps for their issue (e.g. password reset: confirm you'll send a reset link to their work email; VPN: ask them to confirm they're on the latest client and reconnect). If resolved, confirm with the caller and end warmly. If not resolved after troubleshooting, use create_ticket to log it, then transfer to Escalation so a human technician can take over. Keep responses short and avoid jargon.",
+        "llm": "gemini-3.1-flash-lite",
+        "temperature": 0.4,
+        "tool_ids": ["{{CREATE_TICKET_TOOL_ID}}"],
+        "built_in_tools": {
+          "transfer_to_agent": {
+            "type": "system",
+            "name": "transfer_to_agent",
+            "description": "Transfer the caller to Escalation if the technical issue remains unresolved after troubleshooting, or they ask for a human.",
+            "params": {
+              "system_tool_type": "transfer_to_agent",
+              "transfers": [
+                {
+                  "agent_id": "{{AGENT_4_ESCALATION_ID}}",
+                  "condition": "Issue remains unresolved after basic troubleshooting, or caller asks for a human",
+                  "delay_ms": 0,
+                  "transfer_message": null,
+                  "enable_transferred_agent_first_message": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "tts": {
+      "model_id": "eleven_turbo_v2",
+      "voice_id": "21m00Tcm4TlvDq8ikWAM"
+    }
+  }
+}

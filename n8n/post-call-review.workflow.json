@@ -1,0 +1,64 @@
+{
+  "name": "IT Support - Post-Call Structured Review",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "post-call-review",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a33ff869-e9c6-46f7-9c49-286ad0099606",
+      "name": "Webhook - ElevenLabs Post-Call",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 0],
+      "webhookId": "38df4d70-d645-4228-9073-2e9296dd95b9"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ElevenLabs sends this after the call ends (post-call webhook).\n// Field names below follow ElevenLabs' convai post-call payload as of late 2025 -\n// double check against https://elevenlabs.io/docs/conversational-ai/workflows/post-call-webhooks if the fields come through empty.\nconst payload = $input.first().json.body || $input.first().json;\nconst data = payload.data || payload;\nconst analysis = data.analysis || {};\nconst criteria = analysis.evaluation_criteria_results || {};\nconst collected = analysis.data_collection_results || {};\n\nfunction val(obj, key) {\n  const v = obj[key];\n  if (v === undefined) return null;\n  return (v && typeof v === \"object\" && \"value\" in v) ? v.value : v;\n}\n\nconst review = {\n  call_id: data.conversation_id || payload.conversation_id || null,\n  agent_id: data.agent_id || null,\n  call_successful: analysis.call_successful || \"unknown\",\n  issue_resolved: val(criteria, \"resolved\"),\n  correct_process_followed: val(criteria, \"process_followed\"),\n  follow_up_required: val(criteria, \"follow_up_required\"),\n  employee_id: val(collected, \"employee_id\"),\n  issue_category: val(collected, \"issue_category\"),\n  ticket_id: val(collected, \"ticket_id\"),\n  summary: analysis.transcript_summary || null,\n  generated_at: new Date().toISOString()\n};\n\nreturn [{ json: review }];"
+      },
+      "id": "37b86b20-e80d-4f33-8ee7-b89277580716",
+      "name": "Code - Build Structured Review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "630c1431-60ed-48a1-be9e-9c2868ef2bc6",
+      "name": "Respond - Review Saved",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "content": "## n8n config needed here\n- Import + Activate this workflow.\n- Copy the Webhook node's Production URL into ElevenLabs: Agent settings -> \"Post-call webhook\" (set on each of the 4 agents, or just Agent 1).\n- This only returns the structured review as JSON (shown in n8n's execution log).\n- Optional: add a Google Sheets / Airtable / Postgres node after \"Code - Build Structured Review\" if you want the reviews saved somewhere permanent. Not required for the course submission.",
+        "height": 260,
+        "width": 320
+      },
+      "id": "83d44906-def1-48be-aa50-1b7003248d43",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-400, -280]
+    }
+  ],
+  "connections": {
+    "Webhook - ElevenLabs Post-Call": {
+      "main": [[{ "node": "Code - Build Structured Review", "type": "main", "index": 0 }]]
+    },
+    "Code - Build Structured Review": {
+      "main": [[{ "node": "Respond - Review Saved", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": { "instanceId": "post-call-review-workflow" }
+}

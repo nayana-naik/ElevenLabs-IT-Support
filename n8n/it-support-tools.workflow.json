@@ -1,0 +1,148 @@
+{
+  "name": "IT Support - Agent Tools",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "verify-employee",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "991aa15a-3dbb-403c-a77f-b8fa770bfd5f",
+      "name": "Webhook - Verify Employee",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, -200],
+      "webhookId": "85041759-cc4e-4ea2-bc15-ff6dc2d9ef52"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fake employee directory. Replace / extend as needed - this is the ONLY place employee data lives.\nconst employees = [\n  { employee_id: \"E1001\", email: \"aisha.khan@acmecorp.com\", name: \"Aisha Khan\", department: \"Sales\" },\n  { employee_id: \"E1002\", email: \"ravi.mehta@acmecorp.com\", name: \"Ravi Mehta\", department: \"Engineering\" },\n  { employee_id: \"E1003\", email: \"lena.ortiz@acmecorp.com\", name: \"Lena Ortiz\", department: \"Finance\" }\n];\n\nconst body = $input.first().json.body || $input.first().json;\nconst query = (body.employee_id || body.email || \"\").toString().trim().toLowerCase();\n\nconst match = employees.find(e =>\n  e.employee_id.toLowerCase() === query || e.email.toLowerCase() === query\n);\n\nreturn [{\n  json: match\n    ? { verified: true, employee_id: match.employee_id, name: match.name, department: match.department }\n    : { verified: false, message: \"No employee found with that ID or email.\" }\n}];"
+      },
+      "id": "18100acf-e90f-4fdc-8fd0-e898cf2d71cf",
+      "name": "Code - Verify Employee",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, -200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "52184039-f8bd-410b-9107-31c8a443847b",
+      "name": "Respond - Verify Employee",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [40, -200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "create-ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f1dce357-6c51-4834-8c60-476d7755afcd",
+      "name": "Webhook - Create Ticket",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 0],
+      "webhookId": "3ce8ed6a-948d-4d04-b642-cf9d7867337a"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst ticket_id = \"TCK-\" + Date.now().toString().slice(-6);\n\nreturn [{\n  json: {\n    ticket_id,\n    status: \"open\",\n    category: body.category || \"general\",\n    summary: body.issue_summary || body.summary || \"No summary provided\",\n    employee_id: body.employee_id || \"unknown\"\n  }\n}];"
+      },
+      "id": "813c9ddf-2b6d-4af5-bb82-608cb4eac26c",
+      "name": "Code - Create Ticket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "5ef667c6-51b1-4b47-ae43-c018c9ae0bbe",
+      "name": "Respond - Create Ticket",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "escalate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2cd0d350-b927-4eb9-8e50-4f28d6833aad",
+      "name": "Webhook - Escalate",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 200],
+      "webhookId": "5c8d8ed8-3013-44e8-9d19-640beb70fdf8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst escalation_id = \"ESC-\" + Date.now().toString().slice(-6);\n\nreturn [{\n  json: {\n    escalation_id,\n    status: \"escalated_to_human\",\n    reason: body.reason || \"Unresolved after automated troubleshooting\",\n    ticket_id: body.ticket_id || null,\n    message: \"You're being transferred to a live IT support agent. Reference \" + escalation_id + \".\"\n  }\n}];"
+      },
+      "id": "7b434c79-ede5-46b2-80b7-19e83551b0c8",
+      "name": "Code - Escalate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "72877636-a859-4506-a161-448c0ba1e848",
+      "name": "Respond - Escalate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [40, 200]
+    },
+    {
+      "parameters": {
+        "content": "## n8n config needed here\n- Import this workflow, then click \"Activate\".\n- Copy each Webhook node's Production URL into the matching ElevenLabs agent tool (see agents/README.md).\n- No credentials required - everything runs with fake in-memory data on purpose (minimum setup for a course project).",
+        "height": 220,
+        "width": 300
+      },
+      "id": "b04e76df-b37b-4d48-9201-a83901d93605",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-400, -420]
+    }
+  ],
+  "connections": {
+    "Webhook - Verify Employee": {
+      "main": [[{ "node": "Code - Verify Employee", "type": "main", "index": 0 }]]
+    },
+    "Code - Verify Employee": {
+      "main": [[{ "node": "Respond - Verify Employee", "type": "main", "index": 0 }]]
+    },
+    "Webhook - Create Ticket": {
+      "main": [[{ "node": "Code - Create Ticket", "type": "main", "index": 0 }]]
+    },
+    "Code - Create Ticket": {
+      "main": [[{ "node": "Respond - Create Ticket", "type": "main", "index": 0 }]]
+    },
+    "Webhook - Escalate": {
+      "main": [[{ "node": "Code - Escalate", "type": "main", "index": 0 }]]
+    },
+    "Code - Escalate": {
+      "main": [[{ "node": "Respond - Escalate", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": { "instanceId": "it-support-tools-workflow" }
+}

@@ -1,0 +1,16 @@
+.env
+*.log
+.DS_Store
+node_modules/
+reviews/
+n8n_data/
+
+# Real ElevenLabs agent IDs - confidential, not for GitHub.
+# Shareable placeholder versions live in agents/templates/
+agents/1-verification-agent.json
+agents/2-billing-agent.json
+agents/3-tech-support-agent.json
+agents/4-escalation-agent.json
+agents/agentids.txt
+agents/tools.json
+agents/sample-11lab-agent.txt

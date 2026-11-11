@@ -1,0 +1,63 @@
+{
+  "_setup_notes": "Tools are standalone objects in ElevenLabs (POST https://api.elevenlabs.io/v1/convai/tools), not embedded in agent JSON - see docs/API_SETUP_GUIDE.md section 2. Replace {{N8N_WEBHOOK_BASE_URL}} with your n8n base URL. After creating each tool, note its returned 'id' (tool_xxxx) - you'll need it for tool_ids in the agent JSON files.",
+  "tools": [
+    {
+      "tool_config": {
+        "type": "webhook",
+        "name": "verify_employee",
+        "description": "Look up an employee by employee_id or email to confirm they are a real employee before discussing their account.",
+        "response_timeout_secs": 20,
+        "api_schema": {
+          "url": "{{N8N_WEBHOOK_BASE_URL}}/verify-employee",
+          "method": "POST",
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "employee_id": { "type": "string", "description": "Employee ID, e.g. E1001" },
+              "email": { "type": "string", "description": "Work email, used if employee_id is not given" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "tool_config": {
+        "type": "webhook",
+        "name": "create_ticket",
+        "description": "Log an IT billing or technical issue that needs a real change made, or a human to finish resolving.",
+        "response_timeout_secs": 20,
+        "api_schema": {
+          "url": "{{N8N_WEBHOOK_BASE_URL}}/create-ticket",
+          "method": "POST",
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "employee_id": { "type": "string", "description": "Employee ID confirmed via verify_employee" },
+              "category": { "type": "string", "description": "billing or technical" },
+              "issue_summary": { "type": "string", "description": "Short summary of the issue" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "tool_config": {
+        "type": "webhook",
+        "name": "escalate_to_human",
+        "description": "Hand the call off to a live human IT support agent and get back a reference number.",
+        "response_timeout_secs": 20,
+        "api_schema": {
+          "url": "{{N8N_WEBHOOK_BASE_URL}}/escalate",
+          "method": "POST",
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "reason": { "type": "string", "description": "Why the call is being escalated" },
+              "ticket_id": { "type": "string", "description": "ticket_id from create_ticket, if one exists" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

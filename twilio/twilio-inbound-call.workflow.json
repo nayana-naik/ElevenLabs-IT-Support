@@ -1,0 +1,70 @@
+{
+  "name": "IT Support - Twilio Inbound (OPTIONAL)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "twilio-inbound",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "45ddb382-f905-474f-9ac8-a523bf1e08e9",
+      "name": "Webhook - Twilio Call",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 0],
+      "webhookId": "e66125ec-d806-4d10-992a-3fdd7ea5f193"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Twilio hits this URL when a call comes in, and expects TwiML (XML) back.\n// Set ELEVENLABS_SIP_URI below to the SIP/stream URI from your ElevenLabs agent's\n// phone number settings (only needed if you did NOT use ElevenLabs' built-in Twilio import).\nconst ELEVENLABS_SIP_URI = \"sip:your-agent-id@sip.elevenlabs.io\";\n\nconst twiml = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Dial>\n    <Sip>${ELEVENLABS_SIP_URI}</Sip>\n  </Dial>\n</Response>`;\n\nreturn [{ json: { twiml } }];"
+      },
+      "id": "8f4660d1-e235-47d9-acac-c779e5714779",
+      "name": "Code - Build TwiML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.twiml }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "text/xml" }
+            ]
+          }
+        }
+      },
+      "id": "e6e2e5c2-e2bb-465f-9312-d1f582a9efbe",
+      "name": "Respond - TwiML",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [40, 0]
+    },
+    {
+      "parameters": {
+        "content": "## OPTIONAL - only needed if you skip ElevenLabs' built-in Twilio import\n- Recommended path: ElevenLabs dashboard -> Phone Numbers -> Import from Twilio (needs TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN from .env). No n8n needed for that path.\n- This workflow is the manual alternative: point your Twilio number's \"A call comes in\" webhook at this node's Production URL, and set ELEVENLABS_SIP_URI inside the Code node.\n- See twilio/README.md for full instructions.",
+        "height": 240,
+        "width": 320
+      },
+      "id": "40e1bf37-2ea2-4f04-94ec-68d0f51e3db2",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-400, -260]
+    }
+  ],
+  "connections": {
+    "Webhook - Twilio Call": {
+      "main": [[{ "node": "Code - Build TwiML", "type": "main", "index": 0 }]]
+    },
+    "Code - Build TwiML": {
+      "main": [[{ "node": "Respond - TwiML", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": { "instanceId": "twilio-inbound-workflow" }
+}

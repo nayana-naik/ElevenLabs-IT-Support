@@ -1,0 +1,5 @@
+[
+  { "employee_id": "E1001", "email": "aisha.khan@acmecorp.com", "name": "Aisha Khan", "department": "Sales" },
+  { "employee_id": "E1002", "email": "ravi.mehta@acmecorp.com", "name": "Ravi Mehta", "department": "Engineering" },
+  { "employee_id": "E1003", "email": "lena.ortiz@acmecorp.com", "name": "Lena Ortiz", "department": "Finance" }
+]

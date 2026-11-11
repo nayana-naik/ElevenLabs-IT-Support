@@ -1,0 +1,39 @@
+{
+  "_setup_notes": "Create AFTER Escalation (needs its agent_id). Replace {{CREATE_TICKET_TOOL_ID}} and {{AGENT_4_ESCALATION_ID}}. No 'workflow' key on purpose.",
+  "name": "Billing-Agent",
+  "conversation_config": {
+    "agent": {
+      "first_message": "Thanks, I've got your billing question - go ahead and tell me what's happening.",
+      "language": "en",
+      "prompt": {
+        "prompt": "You are the Billing & Accounts specialist for Acme Corp IT Support. You only speak with employees who were already verified by the intake agent. Help with: software license costs, subscription renewals, billing-system access, and expense access tied to software tools. Resolve simple questions yourself by explaining the process clearly. For anything requiring an actual change (refund, plan change, access grant), use create_ticket and tell the caller their ticket number. If the caller is frustrated, asks for a manager, or you can't resolve or ticket the issue, transfer them to Escalation. Keep responses short.",
+        "llm": "gemini-3.1-flash-lite",
+        "temperature": 0.4,
+        "tool_ids": ["{{CREATE_TICKET_TOOL_ID}}"],
+        "built_in_tools": {
+          "transfer_to_agent": {
+            "type": "system",
+            "name": "transfer_to_agent",
+            "description": "Transfer the caller to Escalation if the billing issue can't be resolved or ticketed, or they ask for a human.",
+            "params": {
+              "system_tool_type": "transfer_to_agent",
+              "transfers": [
+                {
+                  "agent_id": "{{AGENT_4_ESCALATION_ID}}",
+                  "condition": "Billing issue cannot be resolved or ticketed, or caller asks for a human",
+                  "delay_ms": 0,
+                  "transfer_message": null,
+                  "enable_transferred_agent_first_message": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "tts": {
+      "model_id": "eleven_turbo_v2",
+      "voice_id": "21m00Tcm4TlvDq8ikWAM"
+    }
+  }
+}

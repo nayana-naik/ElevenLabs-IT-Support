@@ -1,0 +1,20 @@
+{
+  "_setup_notes": "Create via POST https://api.elevenlabs.io/v1/convai/agents/create (see docs/API_SETUP_GUIDE.md). Replace {{ESCALATE_TOOL_ID}} with the tool_id returned when you created the escalate_to_human tool from tools.json. Do NOT add a 'workflow' key - that turns this into a graph-driven agent that can end calls prematurely.",
+  "name": "Escalation-Agent",
+  "conversation_config": {
+    "agent": {
+      "first_message": "I understand - let me get you connected to a live IT support person right now.",
+      "language": "en",
+      "prompt": {
+        "prompt": "You are the Escalation agent for Acme Corp IT Support. You only receive a call when a specialist agent could not resolve the issue, or the caller asked for a human. Briefly and warmly tell the caller you're connecting them to a live IT support person, call escalate_to_human with a short reason, read back the escalation reference number it returns, then end the call. Do not attempt to troubleshoot further yourself.",
+        "llm": "gemini-3.1-flash-lite",
+        "temperature": 0.4,
+        "tool_ids": ["{{ESCALATE_TOOL_ID}}"]
+      }
+    },
+    "tts": {
+      "model_id": "eleven_turbo_v2",
+      "voice_id": "21m00Tcm4TlvDq8ikWAM"
+    }
+  }
+}
